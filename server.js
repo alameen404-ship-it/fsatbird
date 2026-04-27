@@ -10,8 +10,7 @@ async function connectToWhatsApp() {
     const sock = makeWASocket({
         auth: state,
         logger: pino({ level: 'silent' }),
-        browser: ["Fast Bird", "Chrome", "114.0.5735.199"],
-        printQRInTerminal: false // سنرسمه يدوياً
+        browser: ["Fast Bird", "Chrome", "114.0.5735.199"]
     });
 
     sock.ev.on('creds.update', saveCreds);
@@ -26,20 +25,20 @@ async function connectToWhatsApp() {
 
         if (connection === 'close') {
             const statusCode = (lastDisconnect.error instanceof Boom)?.output?.statusCode;
-            console.log(`❌ انقطع الاتصال. كود الخطأ: ${statusCode}`);
+            console.log(`❌ انقطع الاتصال. كود الحالة: ${statusCode}`);
             
-            // إذا لم يكن العطل بسبب تسجيل الخروج، أعد المحاولة بعد 5 ثوانٍ
+            // إعادة المحاولة بذكاء بعد 5 ثوانٍ لمنع الانهيار
             if (statusCode !== DisconnectReason.loggedOut) {
-                console.log('جاري إعادة المحاولة خلال 5 ثوانٍ...');
+                console.log('إعادة المحاولة بعد قليل...');
                 setTimeout(() => connectToWhatsApp(), 5000);
             }
         } else if (connection === 'open') {
-            console.log('✅ تم الربط بنجاح! الطائر السريع جاهز.');
+            console.log('✅ تم الربط بنجاح يا عامر!');
         }
     });
 }
 
 const port = process.env.PORT || 3000;
-http.createServer((req, res) => { res.end("Fast Bird Active"); }).listen(port);
+http.createServer((req, res) => { res.end("Fast Bird Gateway Active"); }).listen(port);
 
-connectToWhatsApp().catch(err => console.log("خطأ في التشغيل: " + err));
+connectToWhatsApp().catch(err => console.log("خطأ حرج: " + err));
