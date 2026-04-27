@@ -1,5 +1,5 @@
 const { default: makeWASocket, useMultiFileAuthState } = require("@whiskeysockets/baileys");
-const qrcode = require('qrcode-terminal'); // المكتبة التي سترسم الرمز
+const qrcode = require('qrcode-terminal');
 const pino = require('pino');
 const http = require('http');
 
@@ -8,8 +8,7 @@ async function connectToWhatsApp() {
     
     const sock = makeWASocket({
         auth: state,
-        logger: pino({ level: 'silent' })
-        // تم حذف printQRInTerminal لأنها لم تعد تعمل
+        logger: pino({ level: 'silent' }) // إخفاء التحذيرات المزعجة
     });
 
     sock.ev.on('creds.update', saveCreds);
@@ -17,19 +16,25 @@ async function connectToWhatsApp() {
     sock.ev.on('connection.update', (update) => {
         const { connection, qr } = update;
 
-        // رسم الرمز يدوياً في السجلات عند استلامه
+        // هنا "المصيدة": إذا وصل الرمز QR، نقوم برسمه في التيرمينال
         if (qr) {
-            console.log('--- امسح الرمز أدناه يا عامر ---');
+            console.log('--- عامر، امسح الرمز أدناه الآن ---');
             qrcode.generate(qr, { small: true });
         }
 
-        if (connection === 'open') {
-            console.log('✅ تم الاتصال بنجاح!');
+        if (connection === 'close') {
+            console.log('انقطع الاتصال، جاري المحاولة مرة أخرى...');
+            connectToWhatsApp();
+        } else if (connection === 'open') {
+            console.log('✅ تم الربط بنجاح! الطائر السريع جاهز الآن.');
         }
     });
 }
 
+// سيرفر ويب بسيط للبقاء متصلاً على Railway
 const port = process.env.PORT || 3000;
-http.createServer((req, res) => { res.end("Fast Bird Gateway Active"); }).listen(port);
+http.createServer((req, res) => {
+    res.end("Fast Bird Gateway Active");
+}).listen(port);
 
 connectToWhatsApp();
